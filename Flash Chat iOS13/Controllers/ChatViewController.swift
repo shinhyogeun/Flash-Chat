@@ -26,11 +26,37 @@ class ChatViewController: UIViewController {
         title = K.appName
         tableView.dataSource = self
         navigationItem.hidesBackButton = true
+        self.tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         //메시지창을 만드는 방법을 꼭 복습하자!!(쌈이랑 고기로 생각해보기!)
-        tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
+        loadMessage()
     }
     
+    func loadMessage(){
+        message = []
+        db.collection(K.FStore.collectionName).getDocuments { (querySnapshot, error) in
+            if let e = error{
+                print("There are some problem retrieving from Firestore. \(e)")
+            } else {
+                querySnapshot
+            }
+            <#code#>
+        }
+    }
+    
+    
     @IBAction func sendPressed(_ sender: UIButton) {
+        if let messageBody = messageTextfield.text, let messageSender = Auth.auth().currentUser?.email{
+            db.collection(K.FStore.collectionName).addDocument(data: [
+                K.FStore.senderField : messageSender,
+                K.FStore.bodyField : messageBody
+            ]) { (error) in
+                if let e = error {
+                    print("There was an issue saving data in FireStore \(e)")
+                } else{
+                    print("Successfully saved data")
+                }
+            }
+        }
         ref = db.collection("tls1gy2rms3@naver.com").addDocument(data: [
             "body" : messageTextfield.text ?? ""
         ]) { err in
@@ -46,14 +72,18 @@ class ChatViewController: UIViewController {
                 print("Error getting documents: \(err)")
             } else {
                 for document in querySnapshot!.documents {
-//                    if document == querySnapshot!.documents[querySnapshot!.documents.count-1]{
-                     print("\(document.documentID) => \(document.data())")
-//                    }
+                    if self.ref!.documentID == document.documentID{
+                        var sender = "tls1gy2rms3@naver.com"
+                        var contents = document.data()["body"]!
+                        var madedMessage = Message(sender: sender, body: contents as! String)
+                        self.message.append(madedMessage)
+                        self.tableView.reloadData()
+                    }
                 }
             }
         }
+        messageTextfield.text = ""
     }
-    
     
     @IBAction func LogOutPressed(_ sender: UIBarButtonItem) {
         do {
