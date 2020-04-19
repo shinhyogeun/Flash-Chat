@@ -10,17 +10,23 @@ import UIKit
 import Firebase
 
 class ChatViewController: UIViewController {
-    
+
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var messageTextfield: UITextField!
     let db = Firestore.firestore()
     var ref : DocumentReference? = nil
     var messages : [Message] = []
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = K.appName
+        let attrs = [
+            NSAttributedString.Key.foregroundColor: UIColor.red,
+            NSAttributedString.Key.font: UIFont(name: "Georgia-Bold", size: 24)!
+        ]
+        UINavigationBar.appearance().titleTextAttributes = attrs
         tableView.dataSource = self
         navigationItem.hidesBackButton = true
+        
         self.tableView.register(UINib(nibName: K.cellNibName, bundle: nil), forCellReuseIdentifier: K.cellIdentifier)
         //메시지창을 만드는 방법을 꼭 복습하자!!(쌈이랑 고기로 생각해보기!)
         loadMessage()
